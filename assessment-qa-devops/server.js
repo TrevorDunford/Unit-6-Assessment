@@ -1,46 +1,45 @@
-var Rollbar = require('rollbar');
-var rollbar = new Rollbar({
-  accessToken: 'POST_SERVER_ITEM_ACCESS_TOKEN',
-  captureUncaught: true,
-  captureUnhandledRejections: true,
-  payload: {
-    code_version: '1.0.0',
-  }
-});
-rollbar.log('Hello world!');
-
 const express = require('express')
+const path = require('path')
 const app = express();
-app.get('/', function(req, res, next){next();
-})
-app.listen(3000)
 const {bots, playerRecord} = require('./data')
 const {shuffleArray} = require('./utils')
 
 app.use(express.json())
 
+app.use(express.static(path.join(__dirname, 'public')))
+
+var Rollbar = require('rollbar')
+var rollbar = new Rollbar({
+  accessToken: '4ffd7220f901470a86aed2e398d41b79',
+  captureUncaught: true,
+  captureUnhandledRejections: true,
+})
+
+rollbar.log('Hello world!')
+
 app.get('/api/robots', (req, res) => {
+    rollbar.log('bots endpoints hit')
     try {
         res.status(200).send(botsArr)
     } catch (error) {
-        console.log('ERROR GETTING BOTS', error)
-        res.sendStatus(400)
+        rollbar.critical('error getting bots', error)
     }
 })
 
 app.get('/api/robots/five', (req, res) => {
+    rollbar.log('five bots endpoints hit')
     try {
         let shuffled = shuffleArray(bots)
         let choices = shuffled.slice(0, 5)
         let compDuo = shuffled.slice(6, 8)
         res.status(200).send({choices, compDuo})
     } catch (error) {
-        console.log('ERROR GETTING FIVE BOTS', error)
-        res.sendStatus(400)
+       rollbar.critical('error grtting FIVE bots', error)
     }
 })
 
 app.post('/api/duel', (req, res) => {
+    rollbar.log('deul duos')
     try {
         // getting the duos from the front end
         let {compDuo, playerDuo} = req.body
@@ -66,17 +65,16 @@ app.post('/api/duel', (req, res) => {
             res.status(200).send('You won!')
         }
     } catch (error) {
-        console.log('ERROR DUELING', error)
-        res.sendStatus(400)
+        rollbar.critical('error Dueling', error)
     }
 })
 
 app.get('/api/player', (req, res) => {
+    rollbar.log('player stats')
     try {
         res.status(200).send(playerRecord)
     } catch (error) {
-        console.log('ERROR GETTING PLAYER STATS', error)
-        res.sendStatus(400)
+       rollbar.critical('error getting Player Stats', error)
     }
 })
 
